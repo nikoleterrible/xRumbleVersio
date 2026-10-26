@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RumbleVersio v2.3 // Clock Gate FSU, Micro-Timing & Hardware Knobs</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+</head>
+<body class="bg-[#08090e] text-gray-100 antialiased p-4 md:p-6 font-mono">
+
+  <div class="bg-[#0f121a] text-gray-100 border border-gray-800 rounded-2xl p-6 shadow-2xl max-w-3xl mx-auto flex flex-col gap-6">
+    
+    <!-- Header -->
+    <div class="border-b border-gray-800 pb-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <h1 class="text-xl font-bold tracking-wide text-white">RUMBLEVERSIO V2.3 // STUDIO</h1>
+          <span class="bg-cyan-500/20 text-cyan-400 text-xs px-2.5 py-0.5 rounded border border-cyan-500/40 font-bold">
+            CLOCK GATE FSU &amp; MICRO-TIMING OFFSET
+          </span>
+        </div>
+        <span class="text-xs text-gray-400">48 kHz / 16-BIT PCM</span>
+      </div>
+      <p class="text-xs text-gray-400 mt-2 leading-relaxed">
+        <strong>Réponse matérielle réelle &amp; contrôle total :</strong> Démarrage effectif du convertisseur ADC (<code class="text-cyan-400">hw.StartAdc()</code>) et réalignement 1:1 des pins physiques du Desmodus Versio (Tone au centre, Speed en coupure de filtre 30 Hz à 3200 Hz). <strong>Horloge calée à 100% sur le Jack FSU (Clock Gate externe)</strong> avec Switch 1 transformé en <strong>Ajustement Décalage</strong> (Ahead -12ms, On-Beat 0ms, Laid-Back Drag +18ms). Bouton FSU dédié au Freeze Wash infini !
+      </p>
+    </div>
+
+    <!-- Section V2: Targeted Demos -->
+    <div class="flex flex-col gap-5">
+      <div class="flex items-center gap-2 text-sm font-bold text-cyan-400 border-b border-gray-800 pb-2">
+        <span class="w-3 h-3 rounded-full bg-cyan-400 inline-block animate-pulse"></span>
+        ÉCOUTE DES NOUVELLES DÉMOS AUDIO (V2.3)
+      </div>
+
+      <!-- Demo 1: Downbeat & Offbeat Groove -->
+      <div class="bg-[#080a10] p-4 rounded-xl border border-gray-800 flex flex-col gap-3 border-l-4 border-l-cyan-400">
+        <div class="flex justify-between items-center text-xs">
+          <span class="font-bold text-cyan-300">1. SCULPTURE DOWNBEAT &amp; OFFBEAT // TAP 1 COUPÉ À ZÉRO</span>
+          <span class="text-cyan-400 text-[11px] font-bold">BLEND=0 (MUTE) // TONE=80% (DOWNBEAT) // REGEN=85% (OFFBEAT)</span>
+        </div>
+        <p class="text-[11px] text-gray-400">
+          <strong>Tone au centre (KNOB_2) :</strong> Le Tap 1 (Blend, KNOB_0) est rigoureusement coupé à zéro. On entend distinctement le sub d'assise sous le temps 1 du kick piloté par Tone, et le contre-temps énergique de Regen (KNOB_1).
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
+          <div>
+            <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">100% Wet Stéréo (Sorties Versio)</span>
+            <audio controls class="w-full mt-1 rounded-lg">
+              <source src="demo_v2_1_offbeat_pump.wav" type="audio/wav">
+            </audio>
+          </div>
+          <div>
+            <span class="text-[10px] text-gray-300 font-bold uppercase tracking-wider">Mix Complet (Kick Dry + Rumble Wet)</span>
+            <audio controls class="w-full mt-1 rounded-lg">
+              <source src="demo_v2_1_offbeat_pump_mix.wav" type="audio/wav">
+            </audio>
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo 2: Rolling 16th Warehouse -->
+      <div class="bg-[#080a10] p-4 rounded-xl border border-gray-800 flex flex-col gap-3 border-l-4 border-l-amber-400">
+        <div class="flex justify-between items-center text-xs">
+          <span class="font-bold text-amber-300">2. ROLLING WAREHOUSE // LES 3 TRANCHES ACTIVES &amp; RÉVERBE</span>
+          <span class="text-amber-400 text-[11px] font-bold">BLEND=70% (G) // TONE=60% (CENTRE) // REGEN=75% (D) // SIZE=45%</span>
+        </div>
+        <p class="text-[11px] text-gray-400">
+          <strong>Les 3 tranches sculptées :</strong> Tap 1 à gauche, Downbeat au centre, Tap 2 à droite. La réverbe (Size, KNOB_3) diffuse le sub sans saturer l'étage de sortie.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
+          <div>
+            <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">100% Wet Stéréo (Sorties Versio)</span>
+            <audio controls class="w-full mt-1 rounded-lg">
+              <source src="demo_v2_2_rolling_16th_warehouse.wav" type="audio/wav">
+            </audio>
+          </div>
+          <div>
+            <span class="text-[10px] text-gray-300 font-bold uppercase tracking-wider">Mix Complet (Kick Dry + Rumble Wet)</span>
+            <audio controls class="w-full mt-1 rounded-lg">
+              <source src="demo_v2_2_rolling_16th_warehouse_mix.wav" type="audio/wav">
+            </audio>
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo 3: Live Resonant SVF Filter Sweep (Speed & Index) -->
+      <div class="bg-[#080a10] p-4 rounded-xl border border-gray-800 flex flex-col gap-3 border-l-4 border-l-fuchsia-400">
+        <div class="flex justify-between items-center text-xs">
+          <span class="font-bold text-fuchsia-300">3. BALAYAGE DU FILTRE RÉSONANT SVF (SPEED &amp; INDEX) + FAT CRUNCH</span>
+          <span class="text-fuchsia-400 text-[11px] font-bold">SPEED=30 Hz &rarr; 2200 Hz // Q=6.0 (RÉSONANCE ACIDE) // FAT CRUNCH</span>
+        </div>
+        <p class="text-[11px] text-gray-400">
+          <strong>Speed (KNOB_5) &amp; Index (KNOB_4) :</strong> Avec les bons potentiomètres connectés, le filtre SVF balaie de 30 Hz (sub sombre et étouffé) jusqu'à plus de 2 kHz avec une résonance liquide acide mordante. La différence est spectaculaire.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
+          <div>
+            <span class="text-[10px] text-fuchsia-400 font-bold uppercase tracking-wider">100% Wet Stéréo (Sorties Versio)</span>
+            <audio controls class="w-full mt-1 rounded-lg">
+              <source src="demo_v2_3_triplet_hypnotic.wav" type="audio/wav">
+            </audio>
+          </div>
+          <div>
+            <span class="text-[10px] text-gray-300 font-bold uppercase tracking-wider">Mix Complet (Kick Dry + Rumble Wet)</span>
+            <audio controls class="w-full mt-1 rounded-lg">
+              <source src="demo_v2_3_triplet_hypnotic_mix.wav" type="audio/wav">
+            </audio>
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo 4: Strict Silence & FSU Infinite Freeze Wash -->
+      <div class="bg-[#080a10] p-4 rounded-xl border border-gray-800 flex flex-col gap-3 border-l-4 border-l-emerald-400">
+        <div class="flex justify-between items-center text-xs">
+          <span class="font-bold text-emerald-300">4. SILENCE STRICT (0.0000) &rarr; GROOVE &rarr; FSU FREEZE WASH INFINI</span>
+          <span class="text-emerald-400 text-[11px] font-bold">M1: SILENCE ABSOLU &rarr; M2: GROOVE &rarr; M3-4: FSU FREEZE WASH</span>
+        </div>
+        <p class="text-[11px] text-gray-400">
+          <strong>Mesure 1 :</strong> Les 3 potards du haut sont à zéro = <strong>SILENCE TOTAL STRICT (0.000000)</strong> garanti avec le nouveau deadband 8%.
+          <br><strong>Mesure 2 :</strong> Les potentiomètres sont montés = groove net calé sur l'horloge FSU.
+          <br><strong>Mesures 3 &amp; 4 :</strong> Appui sur le bouton FSU = <strong>Freeze Wash Infini</strong> (feedback à 99.5%, montée atmosphérique pour les breaks).
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
+          <div>
+            <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">100% Wet Stéréo (Sorties Versio)</span>
+            <audio controls class="w-full mt-1 rounded-lg">
+              <source src="demo_v2_4_fsu_ambient_wash.wav" type="audio/wav">
+            </audio>
+          </div>
+          <div>
+            <span class="text-[10px] text-gray-300 font-bold uppercase tracking-wider">Mix Complet (Kick Dry + Rumble Wet)</span>
+            <audio controls class="w-full mt-1 rounded-lg">
+              <source src="demo_v2_4_fsu_ambient_wash_mix.wav" type="audio/wav">
+            </audio>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Firmware Download Banner -->
+    <div class="bg-cyan-950/40 border border-cyan-500/30 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="text-xs text-gray-300">
+        <strong class="text-white">Firmware v2.3 Prêt :</strong> Flashable via le web programmer Electro-Smith ou Daisy Bootloader.
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-mono text-cyan-400 bg-black/40 px-3 py-1.5 rounded border border-cyan-500/40">
+          RumbleVersio.bin (91.4 KB)
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

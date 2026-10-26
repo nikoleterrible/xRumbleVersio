@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rumble Engine // Web Audio Simulator (Pro Clean DSP)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    .knob-container {
+      position: relative;
+      width: 58px;
+      height: 58px;
+      cursor: ns-resize;
+      user-select: none;
+    }
+    .knob-dial {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #2a2a30, #141418);
+      border: 2px solid #3d3d46;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.1);
+      position: relative;
+      transition: border-color 0.15s;
+    }
+    .knob-dial:hover { border-color: #f5d47a; }
+    .knob-indicator {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      width: 3px;
+      height: 14px;
+      background: #ffffff;
+      border-radius: 2px;
+      transform: translateX(-50%);
+      box-shadow: 0 0 6px rgba(255,255,255,0.8);
+    }
+    .switch-toggle {
+      width: 32px;
+      height: 54px;
+      background: #18181e;
+      border: 1px solid #33333d;
+      border-radius: 6px;
+      position: relative;
+      cursor: pointer;
+    }
+    .switch-bat {
+      width: 14px;
+      height: 14px;
+      background: #c2c2ce;
+      border-radius: 50%;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+      transition: top 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .led-glow { box-shadow: 0 0 12px currentColor; }
+  </style>
+</head>
+<body class="bg-transparent text-[var(--foreground)] antialiased p-3 font-mono">
+
+  <div class="bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] rounded-2xl p-5 shadow-2xl max-w-4xl mx-auto flex flex-col gap-5">
+    
+    <!-- Top Bar: Header & Controls -->
+    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-xl font-bold tracking-wider text-[var(--foreground)]">RUMBLE ENGINE</h1>
+          <span class="bg-[#f5d47a]/20 text-[#f5d47a] text-xs px-2.5 py-0.5 rounded border border-[#f5d47a]/40 font-semibold tracking-wide">
+            VERSIO DSP // CLEAN SUB
+          </span>
+        </div>
+        <p class="text-xs text-[var(--muted-foreground)] mt-1">
+          Moteur DSP optimisé : Pré-filtrage sombre < 140 Hz, zéro son métallique/crispé, et anti-clipping
+        </p>
+      </div>
+
+      <!-- Transport Bar -->
+      <div class="flex items-center gap-3 bg-[var(--background)] p-2 rounded-xl border border-[var(--border)]">
+        <button id="btnPlay" class="bg-[#f5d47a] hover:bg-[#ffe594] text-black font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-2 shadow-md transition-all active:scale-95">
+          <span id="playIcon">▶</span> <span id="playText">Démarrer Kick 909</span>
+        </button>
+        <button id="btnTapKick" class="bg-[var(--secondary)] hover:bg-[var(--secondary)]/80 text-xs px-3 py-2 rounded-lg border border-[var(--border)] font-semibold transition active:scale-95">
+          ⚡ Punch Kick
+        </button>
+        <div class="flex items-center gap-2 pl-2 border-l border-[var(--border)] text-xs">
+          <label for="bpmInput" class="text-[var(--muted-foreground)]">BPM:</label>
+          <input id="bpmInput" type="number" value="132" min="80" max="180" class="w-14 bg-[var(--card)] border border-[var(--border)] rounded px-1.5 py-1 text-center font-bold">
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Section: Module Faceplate (Left) + Visualizer & Scopes (Right) -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+
+      <!-- ==================== 10 HP FACEPLATE REPLICA (COL 1 to 7) ==================== -->
+      <div class="md:col-span-7 bg-[#0e0e12] border-2 border-[#2b2b34] rounded-2xl p-4 shadow-inner flex flex-col gap-4 text-white">
+        
+        <div class="flex justify-between items-center text-[11px] text-[#f5d47a] tracking-widest border-b border-[#22222a] pb-2">
+          <div class="w-3 h-2 bg-[#222228] rounded-full border border-[#444]"></div>
+          <span class="font-bold tracking-widest text-white">RUMBLE // VERSIO</span>
+          <div class="w-3 h-2 bg-[#222228] rounded-full border border-[#444]"></div>
+        </div>
+
+        <!-- ROW 1: TEXTURE & TONE -->
+        <div class="grid grid-cols-2 gap-4 place-items-center">
+          <div class="flex flex-col items-center">
+            <div class="text-[11px] font-bold tracking-wider text-gray-200">TEXTURE</div>
+            <div class="text-[9px] text-[#f5d47a] mb-1">DELAY FEEDBACK</div>
+            <div class="knob-container" data-param="texture" data-val="0.30">
+              <div class="knob-dial"><div class="knob-indicator"></div></div>
+            </div>
+            <span class="text-[11px] text-gray-400 mt-1 val-display">30%</span>
+          </div>
+
+          <div class="flex flex-col items-center">
+            <div class="text-[11px] font-bold tracking-wider text-gray-200">TONE</div>
+            <div class="text-[9px] text-[#f5d47a] mb-1">24dB LPF CUTOFF</div>
+            <div class="knob-container" data-param="tone" data-val="0.40">
+              <div class="knob-dial"><div class="knob-indicator"></div></div>
+            </div>
+            <span class="text-[11px] text-gray-400 mt-1 val-display">85 Hz</span>
+          </div>
+        </div>
+
+        <!-- SWITCHES ROW: COLOR (SW 1) & CLOCK (SW 2) -->
+        <div class="grid grid-cols-2 gap-4 place-items-center bg-[#15151c] py-2 px-3 rounded-xl border border-[#23232c]">
+          <div class="flex items-center gap-3">
+            <div class="flex flex-col text-[10px] text-right font-bold gap-1 text-gray-400">
+              <span id="lblSw1_0">SUB</span>
+              <span id="lblSw1_1" class="text-[#f5d47a]">TAPE</span>
+              <span id="lblSw1_2">CLIP</span>
+            </div>
+            <div id="sw1" class="switch-toggle" data-val="1">
+              <div class="switch-bat" style="top: 20px;"></div>
+            </div>
+            <span class="text-[10px] text-gray-300 font-bold uppercase tracking-wide">COLOR</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <span class="text-[10px] text-gray-300 font-bold uppercase tracking-wide">CLOCK</span>
+            <div id="sw2" class="switch-toggle" data-val="0">
+              <div class="switch-bat" style="top: 4px;"></div>
+            </div>
+            <div class="flex flex-col text-[10px] font-bold gap-1 text-gray-400">
+              <span id="lblSw2_0" class="text-[#00d2ff]">SYNC</span>
+              <span id="lblSw2_1">FREE</span>
+              <span id="lblSw2_2">TRIP</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 2: DUCK DEPTH & DRIVE -->
+        <div class="grid grid-cols-2 gap-4 place-items-center">
+          <div class="flex flex-col items-center">
+            <div class="text-[11px] font-bold tracking-wider text-gray-200">DUCK</div>
+            <div class="text-[9px] text-[#f5d47a] mb-1">SIDECHAIN DEPTH</div>
+            <div class="knob-container" data-param="duck" data-val="0.95">
+              <div class="knob-dial"><div class="knob-indicator"></div></div>
+            </div>
+            <span class="text-[11px] text-gray-400 mt-1 val-display">95%</span>
+          </div>
+
+          <div class="flex flex-col items-center">
+            <div class="text-[11px] font-bold tracking-wider text-gray-200">DRIVE</div>
+            <div class="text-[9px] text-[#ff4455] mb-1">WARM HARMONICS</div>
+            <div class="knob-container" data-param="drive" data-val="0.40">
+              <div class="knob-dial"><div class="knob-indicator"></div></div>
+            </div>
+            <span class="text-[11px] text-gray-400 mt-1 val-display">2.8x</span>
+          </div>
+        </div>
+
+        <!-- ROW 3: RELEASE, SIZE, PRE-DELAY -->
+        <div class="grid grid-cols-3 gap-2 place-items-center">
+          <div class="flex flex-col items-center">
+            <div class="text-[10px] font-bold tracking-wider text-gray-200">RELEASE</div>
+            <div class="text-[9px] text-gray-400 mb-1">SHAPE</div>
+            <div class="knob-container" style="width: 48px; height: 48px;" data-param="release" data-val="0.45">
+              <div class="knob-dial"><div class="knob-indicator" style="height: 11px;"></div></div>
+            </div>
+            <span class="text-[10px] text-gray-400 mt-1 val-display">160ms</span>
+          </div>
+
+          <div class="flex flex-col items-center">
+            <div class="text-[10px] font-bold tracking-wider text-[#f5d47a]">SIZE</div>
+            <div class="text-[9px] text-[#f5d47a] mb-1">SUB DECAY</div>
+            <div class="knob-container" style="width: 52px; height: 52px;" data-param="size" data-val="0.50">
+              <div class="knob-dial" style="border-color: #f5d47a;"><div class="knob-indicator" style="background:#f5d47a;"></div></div>
+            </div>
+            <span class="text-[10px] text-[#f5d47a] mt-1 val-display">400ms</span>
+          </div>
+
+          <div class="flex flex-col items-center">
+            <div class="text-[10px] font-bold tracking-wider text-gray-200">PRE-DLY</div>
+            <div class="text-[9px] text-gray-400 mb-1">GROOVE</div>
+            <div class="knob-container" style="width: 48px; height: 48px;" data-param="predelay" data-val="0.25">
+              <div class="knob-dial"><div class="knob-indicator" style="height: 11px;"></div></div>
+            </div>
+            <span class="text-[10px] text-gray-400 mt-1 val-display">35ms</span>
+          </div>
+        </div>
+
+        <!-- PERFORMANCE CONTROLS: FSU & PUMP METER -->
+        <div class="flex items-center justify-between bg-[#15151c] p-3 rounded-xl border border-[#23232c]">
+          <button id="btnFSU" class="bg-[#ff3344] hover:bg-[#ff5566] text-white font-black text-xs px-3.5 py-2.5 rounded-lg tracking-wider border-2 border-red-700 shadow-lg active:scale-90 transition select-none flex items-center gap-1.5">
+            <span>FSU</span> <span class="text-[9px] font-normal opacity-80">(DROP MUTE)</span>
+          </button>
+
+          <div class="flex flex-col items-center gap-1">
+            <div class="flex gap-2">
+              <div id="led0" class="w-3.5 h-3.5 rounded-full bg-[#ff7700] led-glow transition-all duration-75"></div>
+              <div id="led1" class="w-3.5 h-3.5 rounded-full bg-[#ffaa00] led-glow transition-all duration-75"></div>
+              <div id="led2" class="w-3.5 h-3.5 rounded-full bg-[#ffaa00] led-glow transition-all duration-75"></div>
+              <div id="led3" class="w-3.5 h-3.5 rounded-full bg-[#ff7700] led-glow transition-all duration-75"></div>
+            </div>
+            <span class="text-[9px] text-gray-400 font-bold tracking-widest">PUMP METER</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ==================== MONITOR & VISUALIZERS ==================== -->
+      <div class="md:col-span-5 flex flex-col gap-4">
+        
+        <!-- Output Monitoring Switcher -->
+        <div class="bg-[var(--background)] p-4 rounded-xl border border-[var(--border)] flex flex-col gap-2">
+          <label class="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider">
+            Écoute Sortie Audio :
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btnOutL" class="bg-[#f5d47a] text-black font-bold py-2 rounded-lg text-xs border border-[#f5d47a] shadow transition">
+              OUT L (Kick + Rumble)
+            </button>
+            <button id="btnOutR" class="bg-[var(--card)] text-[var(--muted-foreground)] font-semibold py-2 rounded-lg text-xs border border-[var(--border)] hover:bg-[var(--secondary)] transition">
+              OUT R (100% Sub Wet)
+            </button>
+          </div>
+          <p id="outDesc" class="text-[11px] text-[var(--muted-foreground)] mt-1">
+            Sortie série complète : Kick punch + Rumble sub mixés avec limiteur doux anti-clipping.
+          </p>
+        </div>
+
+        <!-- Oscilloscope -->
+        <div class="bg-[#0b0c10] p-3 rounded-xl border border-[var(--border)] flex flex-col gap-1.5 shadow-inner">
+          <div class="flex justify-between items-center text-[10px] text-[var(--muted-foreground)]">
+            <span class="font-bold text-[#f5d47a]">OSCILLOSCOPE TEMPS RÉEL</span>
+            <span id="scopeMode">Kick + Sub Swell</span>
+          </div>
+          <canvas id="scopeCanvas" width="400" height="120" class="w-full h-28 bg-[#070709] rounded-lg"></canvas>
+        </div>
+
+        <!-- Sub Spectrum -->
+        <div class="bg-[#0b0c10] p-3 rounded-xl border border-[var(--border)] flex flex-col gap-1.5 shadow-inner">
+          <div class="flex justify-between items-center text-[10px] text-[var(--muted-foreground)]">
+            <span class="font-bold text-[#00d2ff]">SPECTRE SUB-BASS (20 Hz - 200 Hz)</span>
+            <span id="cutoffMarker">LPF: 85 Hz</span>
+          </div>
+          <canvas id="spectrumCanvas" width="400" height="100" class="w-full h-24 bg-[#070709] rounded-lg"></canvas>
+        </div>
+
+        <!-- Custom Kick file -->
+        <div class="bg-[var(--background)] p-3 rounded-xl border border-[var(--border)] flex flex-col gap-2 text-xs">
+          <span class="font-bold text-[var(--foreground)]">Tester avec votre propre Kick (.wav/.mp3) :</span>
+          <input type="file" id="kickFileInput" accept="audio/*" class="text-xs text-[var(--muted-foreground)] file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#f5d47a] file:text-black hover:file:bg-[#ffe594] cursor-pointer">
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let audioCtx = null;
+    let isPlaying = false;
+    let kickTimer = null;
+    let customKickBuffer = null;
+    let monitorMode = 'L';
+
+    // DSP Engine Variables
+    const dsp = {
+      sampleRate: 44100,
+      texture: 0.30,
+      tone: 0.40,
+      duckDepth: 0.95,
+      drive: 0.40,
+      release: 0.45,
+      size: 0.50,
+      predelay: 0.25,
+      colorMode: 1,
+      clockMode: 0,
+      fsuActive: false,
+      fsuGain: 1.0,
+
+      // Pre-filter states (1-pole lowpass at 130 Hz to strip all click/fizz)
+      preLpState: 0,
+
+      // Ducking internal envelope
+      duckEnv: 1.0,
+      duckHold: 0,
+      cooldown: 0,
+
+      // Delay buffer
+      delayBuf: new Float32Array(32000),
+      delayIdx: 0,
+      delayLp: 0,
+
+      // Dark Reverb
+      combBuf1: new Float32Array(1120), combIdx1: 0, combFilt1: 0,
+      combBuf2: new Float32Array(1480), combIdx2: 0, combFilt2: 0,
+      combBuf3: new Float32Array(1890), combIdx3: 0, combFilt3: 0,
+
+      // 4-pole lowpass Butterworth filter states
+      lp1_s1: 0, lp1_s2: 0,
+      lp2_s1: 0, lp2_s2: 0,
+      cutoffHz: 85,
+      b0_1: 0, b1_1: 0, b2_1: 0, a1_1: 0, a2_1: 0,
+      b0_2: 0, b1_2: 0, b2_2: 0, a1_2: 0, a2_2: 0
+    };
+
+    function updateFilters() {
+      const fs = dsp.sampleRate;
+      const fc = 55.0 * Math.pow(185.0 / 55.0, dsp.tone);
+      dsp.cutoffHz = Math.round(fc);
+      document.getElementById('cutoffMarker').innerText = `LPF: ${dsp.cutoffHz} Hz`;
+
+      function biquadLp(f, q) {
+        const w = 2.0 * Math.PI * f / fs;
+        const sin_w = Math.sin(w);
+        const cos_w = Math.cos(w);
+        const alpha = sin_w / (2.0 * q);
+        const a0 = 1.0 + alpha;
+        return {
+          b0: ((1.0 - cos_w) * 0.5) / a0,
+          b1: (1.0 - cos_w) / a0,
+          b2: ((1.0 - cos_w) * 0.5) / a0,
+          a1: (-2.0 * cos_w) / a0,
+          a2: (1.0 - alpha) / a0
+        };
+      }
+
+      const f1 = biquadLp(fc, 0.65);
+      dsp.b0_1 = f1.b0; dsp.b1_1 = f1.b1; dsp.b2_1 = f1.b2;
+      dsp.a1_1 = f1.a1; dsp.a2_1 = f1.a2;
+
+      const f2 = biquadLp(fc, 1.15);
+      dsp.b0_2 = f2.b0; dsp.b1_2 = f2.b1; dsp.b2_2 = f2.b2;
+      dsp.a1_2 = f2.a1; dsp.a2_2 = f2.a2;
+    }
+
+    let scriptNode = null;
+    let analyserNode = null;
+
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      dsp.sampleRate = audioCtx.sampleRate;
+      updateFilters();
+
+      // Buffer size: 1024 to ensure 100% glitch-free audio without buffer underruns
+      scriptNode = audioCtx.createScriptProcessor(1024, 1, 2);
+      analyserNode = audioCtx.createAnalyser();
+      analyserNode.fftSize = 512;
+
+      scriptNode.onaudioprocess = processDSPBlock;
+      scriptNode.connect(analyserNode);
+      analyserNode.connect(audioCtx.destination);
+    }
+
+    function processDSPBlock(e) {
+      const input = e.inputBuffer.getChannelData(0);
+      const outL = e.outputBuffer.getChannelData(0);
+      const outR = e.outputBuffer.getChannelData(1);
+      const len = input.length;
+
+      const fb = dsp.texture * 0.72;
+      const delaySamples = Math.floor(0.008 * dsp.sampleRate + (dsp.predelay * dsp.predelay) * (0.140 * dsp.sampleRate));
+      const reverbFb = 0.35 + dsp.size * 0.44;
+      const driveMult = 1.0 + dsp.drive * 5.0;
+      const relTime = 0.050 + (dsp.release * dsp.release) * 0.45;
+      const releaseRate = 1.0 - Math.exp(-3.0 / (relTime * dsp.sampleRate));
+
+      // 1-pole pre-filter coefficient (~130 Hz cutoff to remove any high click before reverb)
+      const preFilterCoeff = 1.0 - Math.exp(-2.0 * Math.PI * 130.0 / dsp.sampleRate);
+
+      for (let i = 0; i < len; i++) {
+        const inSample = input[i];
+
+        // Transient Detection on input
+        if (dsp.cooldown > 0) dsp.cooldown--;
+        if (Math.abs(inSample) > 0.40 && dsp.cooldown === 0) {
+          // Trigger Ducking on Kick punch!
+          dsp.duckEnv = 0.0;
+          dsp.duckHold = Math.floor(dsp.sampleRate * 0.035); // 35ms clean hold during kick attack
+          dsp.cooldown = Math.floor(dsp.sampleRate * 0.220); // 220ms cooldown
+        }
+
+        // STEP 1: PRE-FILTER THE KICK INPUT BEFORE SENDING TO REVERB
+        // This removes the click, snap and high frequencies so the reverb only receives round sub bass!
+        dsp.preLpState += preFilterCoeff * (inSample - dsp.preLpState);
+        const subOnlyInput = dsp.preLpState;
+
+        // STEP 2: RHYTHMIC DELAY WITH DAMPED FEEDBACK
+        let readIdx = dsp.delayIdx - delaySamples;
+        if (readIdx < 0) readIdx += dsp.delayBuf.length;
+        const delayed = dsp.delayBuf[readIdx];
+        dsp.delayLp += 0.20 * (delayed - dsp.delayLp);
+        const satFb = Math.tanh(dsp.delayLp * 1.1) * 0.85;
+        dsp.delayBuf[dsp.delayIdx] = subOnlyInput + satFb * fb;
+        dsp.delayIdx = (dsp.delayIdx + 1) % dsp.delayBuf.length;
+
+        // STEP 3: SUB-TUNED DARK REVERB (Heavy damping at 250 Hz)
+        const c1 = dsp.combBuf1[dsp.combIdx1];
+        dsp.combFilt1 = c1 * 0.35 + dsp.combFilt1 * 0.65;
+        dsp.combBuf1[dsp.combIdx1] = delayed + dsp.combFilt1 * reverbFb;
+        dsp.combIdx1 = (dsp.combIdx1 + 1) % dsp.combBuf1.length;
+
+        const c2 = dsp.combBuf2[dsp.combIdx2];
+        dsp.combFilt2 = c2 * 0.35 + dsp.combFilt2 * 0.65;
+        dsp.combBuf2[dsp.combIdx2] = delayed + dsp.combFilt2 * reverbFb;
+        dsp.combIdx2 = (dsp.combIdx2 + 1) % dsp.combBuf2.length;
+
+        const rev = (c1 + c2) * 0.45;
+
+        // STEP 4: SATURATION (Clean, Warm Tape, or Smooth Clip)
+        const x = rev * driveMult;
+        let sat = x;
+        if (dsp.colorMode === 0) {
+          // Sub Pur: Smooth soft limiter
+          sat = Math.tanh(x) / Math.sqrt(driveMult);
+        } else if (dsp.colorMode === 1) {
+          // Warm Tape: Gentle even harmonic injection
+          sat = Math.tanh(x + 0.10 * x * x) / (0.85 + 0.35 * Math.sqrt(driveMult));
+        } else {
+          // Hard Clip: Soft diode curve (no harsh fold aliasing)
+          sat = Math.tanh(x * 1.5) / (1.0 + 0.25 * driveMult);
+        }
+
+        // STEP 5: 4-POLE STEEP LOW-PASS FILTER (55 - 185 Hz)
+        const lp1 = dsp.b0_1 * sat + dsp.lp1_s1;
+        dsp.lp1_s1 = dsp.b1_1 * sat - dsp.a1_1 * lp1 + dsp.lp1_s2;
+        dsp.lp1_s2 = dsp.b2_1 * sat - dsp.a2_1 * lp1;
+
+        const lp2 = dsp.b0_2 * lp1 + dsp.lp2_s1;
+        dsp.lp2_s1 = dsp.b1_2 * lp1 - dsp.a1_2 * lp2 + dsp.lp2_s2;
+        dsp.lp2_s2 = dsp.b2_2 * lp1 - dsp.a2_2 * lp2;
+
+        // STEP 6: DUCKING ENVELOPE (Smooth exponential swelling)
+        if (dsp.duckHold > 0) {
+          dsp.duckHold--;
+          dsp.duckEnv = 0.0;
+        } else {
+          dsp.duckEnv += releaseRate * (1.0 - dsp.duckEnv);
+          if (dsp.duckEnv > 1.0) dsp.duckEnv = 1.0;
+        }
+
+        // FSU smooth mute ramp
+        const targetFsu = dsp.fsuActive ? 0.0 : 1.0;
+        dsp.fsuGain += 0.005 * (targetFsu - dsp.fsuGain);
+
+        const shapedDuck = dsp.duckEnv * dsp.duckEnv;
+        const duckGain = ((1.0 - dsp.duckDepth) + dsp.duckDepth * shapedDuck) * dsp.fsuGain;
+        const rumbleWet = lp2 * duckGain;
+
+        // STEP 7: OUTPUT SUMMING WITH SOFT LIMITER (Prevents any DAC crackle/overs)
+        if (monitorMode === 'L') {
+          // Parallel mix: Kick Dry + Rumble Wet through soft limiter
+          const sum = (inSample * 0.85) + (rumbleWet * 1.30);
+          const limited = Math.tanh(sum * 0.90) * 0.95;
+          outL[i] = limited;
+          outR[i] = limited;
+        } else {
+          // Out R: Pure Rumble Wet
+          const wetOut = Math.tanh(rumbleWet * 1.80) * 0.95;
+          outL[i] = wetOut;
+          outR[i] = wetOut;
+        }
+      }
+    }
+
+    // Pure Sine-Sweep 909 Kick (No harsh metallic click)
+    function triggerKick() {
+      if (!audioCtx) initAudio();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      if (customKickBuffer) {
+        const src = audioCtx.createBufferSource();
+        src.buffer = customKickBuffer;
+        src.connect(scriptNode);
+        src.start();
+        return;
+      }
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      // Warm pure punch sweep (150 Hz down to 48 Hz)
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(48, now + 0.09);
+
+      // Amp envelope
+      gain.gain.setValueAtTime(0.95, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.36);
+
+      osc.connect(gain);
+      gain.connect(scriptNode);
+      osc.start(now);
+      osc.stop(now + 0.38);
+    }
+
+    function togglePlay() {
+      if (!audioCtx) initAudio();
+      isPlaying = !isPlaying;
+      const btn = document.getElementById('btnPlay');
+      const text = document.getElementById('playText');
+      const icon = document.getElementById('playIcon');
+
+      if (isPlaying) {
+        btn.classList.replace('bg-[#f5d47a]', 'bg-red-500');
+        btn.classList.replace('text-black', 'text-white');
+        text.innerText = "Arrêter Kick";
+        icon.innerText = "■";
+        scheduleNextKick();
+      } else {
+        btn.classList.replace('bg-red-500', 'bg-[#f5d47a]');
+        btn.classList.replace('text-white', 'text-black');
+        text.innerText = "Démarrer Kick 909";
+        icon.innerText = "▶";
+        if (kickTimer) clearTimeout(kickTimer);
+      }
+    }
+
+    function scheduleNextKick() {
+      if (!isPlaying) return;
+      triggerKick();
+      const bpm = parseInt(document.getElementById('bpmInput').value) || 132;
+      const intervalMs = (60.0 / bpm) * 1000.0;
+      kickTimer = setTimeout(scheduleNextKick, intervalMs);
+    }
+
+    // Knobs Drag
+    document.querySelectorAll('.knob-container').forEach(el => {
+      let isDragging = false;
+      let startY = 0;
+      let startVal = parseFloat(el.getAttribute('data-val'));
+      const param = el.getAttribute('data-param');
+      const dial = el.querySelector('.knob-dial');
+      const valDisp = el.parentElement.querySelector('.val-display');
+
+      function updateKnob(val) {
+        val = Math.max(0.0, Math.min(1.0, val));
+        el.setAttribute('data-val', val);
+        dsp[param] = val;
+        dial.style.transform = `rotate(${-135 + val * 270}deg)`;
+
+        if (param === 'texture') valDisp.innerText = `${Math.round(val * 100)}%`;
+        if (param === 'tone') {
+          updateFilters();
+          valDisp.innerText = `${dsp.cutoffHz} Hz`;
+        }
+        if (param === 'duck') valDisp.innerText = `${Math.round(val * 100)}%`;
+        if (param === 'drive') valDisp.innerText = `${(1.0 + val * 5.0).toFixed(1)}x`;
+        if (param === 'release') valDisp.innerText = `${Math.round(50 + val * val * 450)}ms`;
+        if (param === 'size') valDisp.innerText = `${Math.round(200 + val * 500)}ms`;
+        if (param === 'predelay') valDisp.innerText = `${Math.round(8 + val * val * 140)}ms`;
+      }
+
+      updateKnob(startVal);
+
+      el.addEventListener('mousedown', e => {
+        isDragging = true;
+        startY = e.clientY;
+        startVal = parseFloat(el.getAttribute('data-val'));
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+      });
+
+      function onMouseMove(e) {
+        if (!isDragging) return;
+        updateKnob(startVal + (startY - e.clientY) / 160.0);
+      }
+
+      function onMouseUp() {
+        isDragging = false;
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+      }
+    });
+
+    // Switches
+    const sw1 = document.getElementById('sw1');
+    sw1.addEventListener('click', () => {
+      let val = (parseInt(sw1.getAttribute('data-val')) + 1) % 3;
+      sw1.setAttribute('data-val', val);
+      dsp.colorMode = val;
+      sw1.querySelector('.switch-bat').style.top = val === 0 ? '4px' : (val === 1 ? '20px' : '36px');
+      document.getElementById('lblSw1_0').className = val === 0 ? 'text-white' : 'text-gray-400';
+      document.getElementById('lblSw1_1').className = val === 1 ? 'text-[#f5d47a]' : 'text-gray-400';
+      document.getElementById('lblSw1_2').className = val === 2 ? 'text-[#ff4455]' : 'text-gray-400';
+    });
+
+    const sw2 = document.getElementById('sw2');
+    sw2.addEventListener('click', () => {
+      let val = (parseInt(sw2.getAttribute('data-val')) + 1) % 3;
+      sw2.setAttribute('data-val', val);
+      dsp.clockMode = val;
+      sw2.querySelector('.switch-bat').style.top = val === 0 ? '4px' : (val === 1 ? '20px' : '36px');
+      document.getElementById('lblSw2_0').className = val === 0 ? 'text-[#00d2ff]' : 'text-gray-400';
+      document.getElementById('lblSw2_1').className = val === 1 ? 'text-white' : 'text-gray-400';
+      document.getElementById('lblSw2_2').className = val === 2 ? 'text-[#f5d47a]' : 'text-gray-400';
+    });
+
+    // FSU Button
+    const btnFSU = document.getElementById('btnFSU');
+    btnFSU.addEventListener('mousedown', () => { dsp.fsuActive = true; });
+    window.addEventListener('mouseup', () => { dsp.fsuActive = false; });
+    btnFSU.addEventListener('touchstart', (e) => { e.preventDefault(); dsp.fsuActive = true; });
+    btnFSU.addEventListener('touchend', (e) => { e.preventDefault(); dsp.fsuActive = false; });
+
+    // Output Mode Switcher
+    const btnOutL = document.getElementById('btnOutL');
+    const btnOutR = document.getElementById('btnOutR');
+    const outDesc = document.getElementById('outDesc');
+    const scopeMode = document.getElementById('scopeMode');
+
+    btnOutL.addEventListener('click', () => {
+      monitorMode = 'L';
+      btnOutL.className = 'bg-[#f5d47a] text-black font-bold py-2 rounded-lg text-xs border border-[#f5d47a] shadow transition';
+      btnOutR.className = 'bg-[var(--card)] text-[var(--muted-foreground)] font-semibold py-2 rounded-lg text-xs border border-[var(--border)] hover:bg-[var(--secondary)] transition';
+      outDesc.innerText = "Sortie série complète : Kick punch + Rumble sub mixés avec limiteur doux anti-clipping.";
+      scopeMode.innerText = "Kick + Sub Swell";
+    });
+
+    btnOutR.addEventListener('click', () => {
+      monitorMode = 'R';
+      btnOutR.className = 'bg-[#f5d47a] text-black font-bold py-2 rounded-lg text-xs border border-[#f5d47a] shadow transition';
+      btnOutL.className = 'bg-[var(--card)] text-[var(--muted-foreground)] font-semibold py-2 rounded-lg text-xs border border-[var(--border)] hover:bg-[var(--secondary)] transition';
+      outDesc.innerText = "Sortie auxiliaire 100% WET : Seul le sub rumble est audible (prêt pour console de mixage).";
+      scopeMode.innerText = "100% Pure Sub Rumble Wave";
+    });
+
+    document.getElementById('btnPlay').addEventListener('click', togglePlay);
+    document.getElementById('btnTapKick').addEventListener('click', () => triggerKick());
+
+    document.getElementById('kickFileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      initAudio();
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        audioCtx.decodeAudioData(ev.target.result, (buf) => {
+          customKickBuffer = buf;
+          alert("Échantillon de kick chargé !");
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Visualizers
+    const scopeCanvas = document.getElementById('scopeCanvas');
+    const scopeCtx = scopeCanvas.getContext('2d');
+    const specCanvas = document.getElementById('spectrumCanvas');
+    const specCtx = specCanvas.getContext('2d');
+    const timeData = new Uint8Array(512);
+    const freqData = new Uint8Array(256);
+
+    function renderVisualizers() {
+      requestAnimationFrame(renderVisualizers);
+
+      const env = dsp.duckEnv * dsp.fsuGain;
+      const leds = [document.getElementById('led0'), document.getElementById('led1'), document.getElementById('led2'), document.getElementById('led3')];
+      let baseColor = dsp.colorMode === 0 ? '#00d2ff' : (dsp.colorMode === 1 ? '#f5d47a' : '#ff3344');
+      if (dsp.fsuActive) baseColor = '#444';
+
+      leds.forEach(led => {
+        led.style.backgroundColor = baseColor;
+        led.style.opacity = Math.max(0.12, env).toString();
+      });
+
+      if (analyserNode) {
+        analyserNode.getByteTimeDomainData(timeData);
+        analyserNode.getByteFrequencyData(freqData);
+      }
+
+      scopeCtx.fillStyle = '#070709';
+      scopeCtx.fillRect(0, 0, scopeCanvas.width, scopeCanvas.height);
+      scopeCtx.lineWidth = 2.5;
+      scopeCtx.strokeStyle = monitorMode === 'L' ? '#f5d47a' : '#00d2ff';
+      scopeCtx.beginPath();
+
+      const sliceW = scopeCanvas.width / 256.0;
+      let x = 0;
+      for (let i = 0; i < 256; i++) {
+        const v = timeData[i] / 128.0;
+        const y = (v * scopeCanvas.height) / 2.0;
+        if (i === 0) scopeCtx.moveTo(x, y);
+        else scopeCtx.lineTo(x, y);
+        x += sliceW;
+      }
+      scopeCtx.stroke();
+
+      specCtx.fillStyle = '#070709';
+      specCtx.fillRect(0, 0, specCanvas.width, specCanvas.height);
+      const barCount = 36;
+      const barWidth = specCanvas.width / barCount;
+      for (let i = 0; i < barCount; i++) {
+        const mag = freqData[i + 1] / 255.0;
+        const barH = mag * specCanvas.height;
+        specCtx.fillStyle = `hsl(${180 + i * 2}, 90%, 55%)`;
+        specCtx.fillRect(i * barWidth, specCanvas.height - barH, barWidth - 1.5, barH);
+      }
+    }
+
+    renderVisualizers();
+  </script>
+</body>
+</html>

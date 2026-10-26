@@ -1,0 +1,55 @@
+name: Unit Tests
+on:
+  # run for all pull requests
+  # Run for all commits on feature branches
+  push:
+    paths:
+    - 'src/**'
+    - 'tests/**'
+    - '.github/workflows/**'
+  pull_request:
+    paths:
+    - 'src/**'
+    - 'tests/**'
+    - '.github/workflows/**'
+jobs:
+  ###############################################################################
+  # builds the automated tests with clang; runs tests and exports results
+  googleTest:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Configure CMake
+      run: cmake -B build -S tests
+
+    - name: Build Tests
+      run: cmake --build build
+
+    - name: Run Tests
+      run: ctest --test-dir build --output-junit results/gtestresults.xml
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: Test Results
+        path: build/results/*.xml
+
+  event_file:
+    name: "Event File"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: Event File
+        path: ${{ github.event_path }}
+

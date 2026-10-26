@@ -1,0 +1,144 @@
+<!-- Banner -->
+<p align="center">
+    <a href=https://daisy.audio/collections/daisy>
+        <img width=15% src=https://raw.githubusercontent.com/daisyaudio/daisysp/master/resources/assets/banner.png>
+    </a>
+</p>
+<h1 align="center">libDaisy</h1>
+<h3 align="center" >Hardware Abstraction Library for the Daisy Audio Platform </h3>
+<br>
+<!--CI Badges-->
+<p align="center">
+    <a href="https://github.com/daisyaudio/libDaisy/actions/workflows/build.yml">
+      <img src="https://github.com/daisyaudio/libDaisy/actions/workflows/build.yml/badge.svg?branch=master">
+    </a>
+    <a href="https://github.com/daisyaudio/libDaisy/actions/workflows/unit_tests.yaml">
+      <img src="https://github.com/daisyaudio/libDaisy/workflows/Unit%20Tests/badge.svg">
+    </a>
+    <a href="https://github.com/daisyaudio/libDaisy/actions/workflows/style.yml">
+      <img src="https://github.com/daisyaudio/libDaisy/workflows/Style/badge.svg">
+    </a>
+</p>
+
+libDaisy provides easy access to things such as Audio, Controls, GPIO, MIDI, USB communication, and more.
+
+## Features
+
+- Configurable Audio Callback
+
+- MIDI Drivers
+
+- USB Communication (Audio, MIDI, Serial, etc.)
+
+- Peripheral Device Drivers (SPI, I2S, I2C, etc.)
+
+## Code Example
+
+```c++
+int main(void)
+{
+    // Init
+    float samplerate;
+    hw.Init();
+    samplerate = hw.AudioSampleRate();
+    midi.Init(MidiHandler::INPUT_MODE_UART1, MidiHandler::OUTPUT_MODE_NONE);
+
+    midi.StartReceive();
+    hw.StartAdc();
+    hw.StartAudio(AudioCallback);
+
+    for(;;)
+    {
+        midi.Listen();
+        // Handle MIDI Events
+        while (midi.HasEvents())
+        {
+            HandleMidiMessage(midi.PopEvent());
+        }
+    }
+}
+```
+
+## Getting Started
+
+- Check out our [Getting Started Page](https://docs.daisy.audio/tutorials/cpp-dev-env/)
+- Browse the reference documentation [on the web](https://docs.daisy.audio/libDaisy/namespacedaisy/)
+- Make some sound!
+
+## Project Overview
+
+Prefixes and their meanings:
+
+- **sys** - System level configuration (clocks, dma, etc.)
+- **per** - Peripheral level, internal to MCU (i2c, spi, etc.)
+- **dev** - External device support (external flash chips, DACs, codecs, etc.)
+- **hid** - User level interface elements (encoders, switches, audio, etc.)
+- **ui** - User interface building blocks like menu systems, event queues, etc.
+- **util** - library level elements used within the library (not included via daisy.h)
+- **daisy** - core API files (specific boards and platforms have extended user APIs that configure libDaisy more below).
+
+Also included is a core/ folder containing:
+
+- a generic Makefile that can be included in a project Makefile to simplify getting started
+- a linker script for defining the sections of memory used by the firmware
+- core files for starting the hardware (system_stm32h7xx.c, startup_stm32h750xx.s, etc.)
+
+Unit Tests can be found in the tests/ folder. [Here's a tutorial on how to develop unit tested code for libDaisy](doc/md/_b1_Development-Unit-Testing.md).
+
+### daisy.h
+
+The base-level include file. This is all you need to include to create your own custom hardware that uses libDaisy.
+
+`daisy_seed.h` is an example of a board level file that utilizes libDaisy to define some hardware, and provide flexible access.
+
+### daisy_seed.h
+
+The SOM-level include file. This can be used with any boards that use the Daisy Seed hardware.
+
+Additional configuration files, with more specific hardware access are provided below for supported hardware platforms.
+
+### daisy_platform.h
+
+Several other pairs of files exist for each of the supported hardware platforms that work with Daisy Seed.
+
+These are:
+
+- daisy_field
+- daisy_patch
+- daisy_petal
+- daisy_pod
+- desktop_devkit
+- eurorack_devkit
+- pedal_devkit
+
+With these files a number of additional initialization, and configuration is done by the library.
+
+This allows a user to jump right in without needing a complete understanding of what's going on under the hood.
+
+## Contributing
+
+Here are some ways that you can get involved:
+
+- Proof read the documentation and suggest improvements
+- Test existing functionality and make [issues](https://github.com/daisyaudio/libDaisy/issues)
+- Add new functionality to the library. See issues labeled "feature"
+- Fix problems with existing codebase. See issues labeled "bug" and/or "polish"
+
+## Support
+
+Here are some ways to get support and connect with other users and developers:
+
+- Join the [Daisy Forum](https://community.daisy.audio/)
+
+- Make a [GitHub Issue](https://github.com/daisyaudio/libDaisy/issues)
+
+- Join the [Daisy Discord Server](https://discord.gg/ByHBnMtQTR)
+
+## License
+
+libDaisy is licensed with the permissive MIT open source license.
+
+This allows for modification and reuse in both commercial and personal projects.
+It does not provide a warranty of any kind.
+
+For the full license, read the [LICENSE](https://github.com/daisyaudio/libDaisy/blob/master/LICENSE) file in the root directory.

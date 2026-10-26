@@ -1,0 +1,26 @@
+# Toolchain and compilers (hundreds of MB)
+toolchain/
+
+# Intermediate compilation artifacts
+build/
+*.o
+*.d
+*.map
+*.lst
+*.elf
+*.hex
+
+# Large audio demo files (keep repository lightweight; audio can be downloaded or generated)
+*.wav
+
+# Python cache & virtual environments
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# IDE / OS specific files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

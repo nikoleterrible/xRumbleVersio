@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RumbleVersio v2.3 // Façade & Architecture Matérielle 1:1</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+</head>
+<body class="bg-[#08090e] text-gray-100 antialiased p-4 md:p-8 font-mono flex flex-col items-center">
+
+  <div class="max-w-6xl w-full flex flex-col gap-8">
+    
+    <!-- Header -->
+    <div class="border-b border-gray-800 pb-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-black tracking-wider text-white">RUMBLEVERSIO V2.3 // INTERFACE</h1>
+          <span class="bg-cyan-500/20 text-cyan-400 text-xs px-2.5 py-1 rounded border border-cyan-500/40 font-bold">
+            ARCHITECTURE MATÉRIELLE 1:1
+          </span>
+        </div>
+        <p class="text-xs text-gray-400 mt-1.5 leading-relaxed">
+          Guide rigoureux de la faceplate Desmodus Versio : potentiomètres ADC, horloge Clock Gate sur FSU Jack, micro-timing et filtre SVF.
+        </p>
+      </div>
+      <div class="flex items-center gap-3 text-xs">
+        <a href="listen_demos.html" class="bg-cyan-600 hover:bg-cyan-500 text-black font-bold px-4 py-2 rounded-lg transition shadow-lg flex items-center gap-2">
+          <span>🎧</span> Écouter les Démos Audio v2.3
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Grid: Vector Faceplate (Left) + Detailed Technical Cards (Right) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Left Column: Faceplate Vector Preview -->
+      <div class="lg:col-span-5 bg-[#0f121a] border border-gray-800 rounded-2xl p-5 flex flex-col items-center shadow-2xl">
+        <div class="w-full flex items-center justify-between mb-4 border-b border-gray-800/80 pb-3">
+          <h2 class="text-xs font-bold text-cyan-400 tracking-wider uppercase flex items-center gap-2">
+            <span>🎛️</span> Façade Eurorack 10 HP (50.5 × 128.5 mm)
+          </h2>
+          <span class="text-[10px] text-gray-500 font-mono">1:1 DESMODUS VERSIO</span>
+        </div>
+        
+        <div class="bg-black/90 p-4 rounded-xl border border-gray-800 shadow-inner flex justify-center w-full">
+          <object data="faceplate_rumble_engine.svg" type="image/svg+xml" class="w-[280px] h-auto drop-shadow-2xl">
+            Votre navigateur ne supporte pas l'affichage SVG.
+          </object>
+        </div>
+
+        <div class="text-[11px] text-gray-400 mt-4 leading-relaxed bg-[#080a10] p-3 rounded-xl border border-gray-800/60 w-full">
+          <strong class="text-white">Note de conformité physique :</strong>
+          Tous les potentiomètres, switches, boutons et prises jacks sont placés au millimètre près en concordance avec la sérigraphie d'origine Noise Engineering.
+        </div>
+      </div>
+
+      <!-- Right Column: Control Specs & Architecture -->
+      <div class="lg:col-span-7 flex flex-col gap-6">
+        
+        <!-- Hardware Diagnostic Banner -->
+        <div class="bg-emerald-950/30 border border-emerald-500/40 rounded-2xl p-4 text-xs text-emerald-200 shadow-lg">
+          <div class="font-bold text-emerald-300 text-sm mb-1.5 flex items-center gap-2">
+            <span>✅</span> Démarrage ADC &amp; Raccordement des Pins Matériels
+          </div>
+          <p class="leading-relaxed text-[11px] text-gray-300">
+            L'appel <code class="text-emerald-400 bg-black/40 px-1 py-0.5 rounded">hw.StartAdc()</code> active désormais le DMA du microcontrôleur Cortex-M7. Les 7 potentiomètres sont réalignés 1:1 sur les canaux ADC physiques du Desmodus Versio (Tone sur <code class="text-emerald-400">KNOB_2</code>, Speed sur <code class="text-emerald-400">KNOB_5</code>).
+          </p>
+        </div>
+
+        <!-- 1. The 3 Tap Knobs Card (Top Inverted Triangle) -->
+        <div class="bg-[#0f121a] border border-gray-800 rounded-2xl p-5 flex flex-col gap-3 shadow-xl">
+          <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+            <h2 class="text-xs font-bold text-cyan-400 tracking-wider uppercase flex items-center gap-2">
+              <span>🥁</span> 1. Triangle Supérieur : Niveaux des 3 Tranches
+            </h2>
+            <span class="text-[10px] text-rose-400 font-bold bg-rose-950/40 px-2 py-0.5 rounded border border-rose-500/30">
+              DEADBAND &lt; 8% = SILENCE ABSOLU
+            </span>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <!-- Knob 0: BLEND -> TAP 1 (Top Left) -->
+            <div class="bg-[#080a10] p-3 rounded-xl border border-gray-800 border-l-4 border-l-cyan-400 flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between font-bold text-cyan-300">
+                  <span>BLEND</span>
+                  <span class="text-[10px] text-gray-500 font-mono">KNOB_0</span>
+                </div>
+                <div class="text-[10px] text-cyan-400 font-bold mt-0.5">TAP 1 (16e note #2)</div>
+                <div class="text-[11px] text-gray-400 mt-2 leading-relaxed">
+                  Spatialisé à <strong>gauche</strong> (pan L 85% / R 15%). Contrôle le premier rebond double-croche.
+                </div>
+              </div>
+              <div class="mt-2 pt-2 border-t border-gray-800/80 text-[10px] text-gray-500">
+                Course &lt; 8% = 0.000000
+              </div>
+            </div>
+
+            <!-- Knob 2: TONE -> DOWNBEAT (Top Center, lower) -->
+            <div class="bg-[#080a10] p-3 rounded-xl border border-gray-800 border-l-4 border-l-amber-400 flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between font-bold text-amber-300">
+                  <span>TONE</span>
+                  <span class="text-[10px] text-gray-500 font-mono">KNOB_2</span>
+                </div>
+                <div class="text-[10px] text-amber-400 font-bold mt-0.5">DOWNBEAT (Temps 1)</div>
+                <div class="text-[11px] text-gray-400 mt-2 leading-relaxed">
+                  Au <strong>centre</strong> (pan mono 70%). Dose directement le corps sub d'assise sous la frappe du kick.
+                </div>
+              </div>
+              <div class="mt-2 pt-2 border-t border-gray-800/80 text-[10px] text-gray-500">
+                Course &lt; 8% = 0.000000
+              </div>
+            </div>
+
+            <!-- Knob 1: REGEN -> TAP 2 / OFFBEAT (Top Right) -->
+            <div class="bg-[#080a10] p-3 rounded-xl border border-gray-800 border-l-4 border-l-cyan-400 flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between font-bold text-cyan-300">
+                  <span>REGEN</span>
+                  <span class="text-[10px] text-gray-500 font-mono">KNOB_1</span>
+                </div>
+                <div class="text-[10px] text-cyan-400 font-bold mt-0.5">TAP 2 (Offbeat)</div>
+                <div class="text-[11px] text-gray-400 mt-2 leading-relaxed">
+                  Spatialisé à <strong>droite</strong> (pan L 15% / R 85%). Contrôle le contre-temps moteur du groove techno.
+                </div>
+              </div>
+              <div class="mt-2 pt-2 border-t border-gray-800/80 text-[10px] text-gray-500">
+                Course &lt; 8% = 0.000000
+              </div>
+            </div>
+          </div>
+
+          <div class="text-[11px] text-gray-400 bg-black/40 p-2.5 rounded-lg border border-gray-800/80 leading-relaxed">
+            <strong class="text-white">Règle de coupure stricte :</strong> Si Blend, Tone et Regen sont tournés au minimum (&lt; 8%), <strong>la sortie audio est rigoureusement silencieuse (0.000000)</strong>. Aucun souffle, aucune réverbe ni aucun écho résiduel ne passe.
+          </div>
+        </div>
+
+        <!-- 2. Filter, Reverb & Drive Card (Middle Cluster + Dense) -->
+        <div class="bg-[#0f121a] border border-gray-800 rounded-2xl p-5 flex flex-col gap-3 shadow-xl">
+          <h2 class="text-xs font-bold text-amber-300 tracking-wider uppercase flex items-center gap-2 border-b border-gray-800 pb-2">
+            <span>🎚️</span> 2. Sculpture Analogique : Filtre SVF, Réverbe &amp; Saturation
+          </h2>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <!-- Knob 5: SPEED -> SVF CUTOFF (Mid Left) -->
+            <div class="bg-[#080a10] p-3 rounded-xl border border-gray-800 border-l-4 border-l-amber-400">
+              <div class="flex justify-between font-bold text-amber-300">
+                <span>SPEED (2e rangée Gauche)</span>
+                <span class="text-[10px] text-gray-500 font-mono">KNOB_5</span>
+              </div>
+              <div class="text-[10px] text-amber-400 font-bold mt-0.5">FILTRE SVF 24 dB/oct</div>
+              <div class="text-[11px] text-gray-400 mt-1.5 leading-relaxed">
+                Balayage de <strong>30 Hz à 3200 Hz</strong>. À gauche, le sub est sourd et feutré ; à droite, les harmoniques riches médiums s'ouvrent en grand.
+              </div>
+            </div>
+
+            <!-- Knob 4: INDEX -> SVF RESONANCE Q (Mid Center, lower) -->
+            <div class="bg-[#080a10] p-3 rounded-xl border border-gray-800 border-l-4 border-l-amber-400">
+              <div class="flex justify-between font-bold text-amber-300">
+                <span>INDEX (Centre Médian)</span>
+                <span class="text-[10px] text-gray-500 font-mono">KNOB_4</span>
+              </div>
+              <div class="text-[10px] text-amber-400 font-bold mt-0.5">RÉSONANCE Q DU FILTRE</div>
+              <div class="text-[11px] text-gray-400 mt-1.5 leading-relaxed">
+                Facteur Q de <strong>0.707 (feutré doux) jusqu'à 6.5 (auto-oscillation acide mordante)</strong>. Le sweep avec résonance haute fait siffler le rumble !
+              </div>
+            </div>
+
+            <!-- Knob 3: SIZE -> REVERB SPACE (Mid Right) -->
+            <div class="bg-[#080a10] p-3 rounded-xl border border-gray-800 border-l-4 border-l-cyan-400">
+              <div class="flex justify-between font-bold text-cyan-300">
+                <span>SIZE (2e rangée Droite)</span>
+                <span class="text-[10px] text-gray-500 font-mono">KNOB_3</span>
+              </div>
+              <div class="text-[10px] text-cyan-400 font-bold mt-0.5">ESPACE DE RÉVERBE SUB</div>
+              <div class="text-[11px] text-gray-400 mt-1.5 leading-relaxed">
+                À 0 = <strong>100% sec</strong> (taps nets et percutants). En montant = espace cathédrale warehouse sombre et enveloppant.
+              </div>
+            </div>
+
+            <!-- Knob 6: DENSE -> DRIVE SATURATION (Lower Right) -->
+            <div class="bg-[#080a10] p-3 rounded-xl border border-gray-800 border-l-4 border-l-rose-500">
+              <div class="flex justify-between font-bold text-rose-400">
+                <span>DENSE (En bas à Droite)</span>
+                <span class="text-[10px] text-gray-500 font-mono">KNOB_6</span>
+              </div>
+              <div class="text-[10px] text-rose-400 font-bold mt-0.5">DRIVE &amp; HARMONIQUES</div>
+              <div class="text-[11px] text-gray-400 mt-1.5 leading-relaxed">
+                Gain de <strong>1.0x à 4.2x</strong> avec compensation unitaire automatique de volume pour préserver le headroom Eurorack.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Switches & FSU Performance Systems -->
+        <div class="bg-[#0f121a] border border-gray-800 rounded-2xl p-5 flex flex-col gap-3 shadow-xl">
+          <h2 class="text-xs font-bold text-rose-400 tracking-wider uppercase flex items-center gap-2 border-b border-gray-800 pb-2">
+            <span>⚡</span> 3. Contrôles de Performance : Clock Gate, Micro-Timing &amp; Freeze Wash
+          </h2>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <!-- Switch 0: Top Toggle (LIM/DST/SHM) -->
+            <div class="bg-[#080a10] p-3.5 rounded-xl border border-gray-800 flex flex-col justify-between">
+              <div>
+                <div class="font-bold text-white mb-0.5">SWITCH HAUT : SW_0</div>
+                <div class="text-[10px] text-amber-400 font-bold mb-2">MODÈLE DE SATURATION</div>
+                <ul class="text-[11px] text-gray-300 space-y-1.5">
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> <strong>LIM : Sub Pur</strong> (transparent)</li>
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> <strong>DST : Warm Tape</strong> (chaleur console)</li>
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> <strong>SHM : Fat Crunch</strong> (mordant diode)</li>
+                </ul>
+              </div>
+              <div class="text-[10px] text-gray-500 mt-2 pt-2 border-t border-gray-800/80">Crossfade anti-clic 15 ms</div>
+            </div>
+
+            <!-- Switch 1: Bottom Toggle (BND/LRP/JMP) -->
+            <div class="bg-[#080a10] p-3.5 rounded-xl border border-gray-800 border-l-4 border-l-cyan-400 flex flex-col justify-between">
+              <div>
+                <div class="font-bold text-cyan-300 mb-0.5">SWITCH BAS : SW_1</div>
+                <div class="text-[10px] text-cyan-400 font-bold mb-2">AJUSTEMENT DÉCALAGE (POCKET)</div>
+                <ul class="text-[11px] text-gray-300 space-y-1.5">
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> <strong>BND : Ahead (-12 ms)</strong> (agressif)</li>
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-white"></span> <strong>LRP : On-Beat (0 ms)</strong> (calage exact)</li>
+                  <li class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> <strong>JMP : Drag (+18 ms)</strong> (swing lourd)</li>
+                </ul>
+              </div>
+              <div class="text-[10px] text-gray-500 mt-2 pt-2 border-t border-gray-800/80">Micro-timing live immédiat</div>
+            </div>
+
+            <!-- FSU Button + Jack Gate -->
+            <div class="bg-[#080a10] p-3.5 rounded-xl border border-gray-800 border-l-4 border-l-rose-500 flex flex-col justify-between">
+              <div>
+                <div class="font-bold text-rose-400 mb-0.5">FSU : BOUTON &amp; JACK GATE</div>
+                <div class="text-[10px] text-rose-300 font-bold mb-2">DÉCORRÉLATION PARFAITE</div>
+                <div class="text-[11px] text-gray-300 space-y-2 leading-relaxed">
+                  <div>
+                    <strong class="text-cyan-400">• Jack FSU (Gate In) :</strong> Entrée <strong>Clock Eurorack</strong> pure. Synchronise l'horloge sans détection audio approximative.
+                  </div>
+                  <div>
+                    <strong class="text-rose-400">• Bouton Rond FSU :</strong> Effet <strong>Freeze Wash</strong> infini (feedback 99.5%) pour monter la tension en live.
+                  </div>
+                </div>
+              </div>
+              <div class="text-[10px] text-gray-500 mt-2 pt-2 border-t border-gray-800/80">Pulsation violette des 4 LEDs</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Bottom Patchbay Mapping Reference -->
+    <div class="bg-[#0f121a] border border-gray-800 rounded-2xl p-5 shadow-2xl">
+      <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+        <span>🔌</span> Matrice des 12 Jacks Eurorack (3 Rangées)
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div class="bg-[#080a10] p-3 rounded-xl border border-gray-800">
+          <div class="text-cyan-400 font-bold mb-1">Rangée 1 (Contrôles CV)</div>
+          <div class="text-gray-400 text-[11px]">
+            • <strong>Blend</strong> : CV Tap 1 Level<br/>
+            • <strong>Tone</strong> : CV Downbeat Level<br/>
+            • <strong>Regen</strong> : CV Tap 2 Level<br/>
+            • <strong>Dense</strong> : CV Drive Saturation
+          </div>
+        </div>
+        <div class="bg-[#080a10] p-3 rounded-xl border border-gray-800">
+          <div class="text-amber-400 font-bold mb-1">Rangée 2 (CV Espace &amp; Clock)</div>
+          <div class="text-gray-400 text-[11px]">
+            • <strong>Speed</strong> : CV Cutoff SVF (0-5V)<br/>
+            • <strong>Index</strong> : CV Résonance Q<br/>
+            • <strong>Size</strong> : CV Reverb Space<br/>
+            • <strong class="text-cyan-300">FSU (Gate In)</strong> : <strong>Horloge Clock Eurorack</strong>
+          </div>
+        </div>
+        <div class="bg-[#080a10] p-3 rounded-xl border border-gray-800">
+          <div class="text-white font-bold mb-1">Rangée 3 (Bande Déchirée - Audio)</div>
+          <div class="text-gray-400 text-[11px]">
+            • <strong>In L</strong> : Entrée Kick drum mono<br/>
+            • <strong>In R</strong> : Normalisée sur In L si déconnectée<br/>
+            • <strong class="text-cyan-400">Out L</strong> : Sortie Stéréo Pure Rumble Gauche<br/>
+            • <strong class="text-cyan-400">Out R</strong> : Sortie Stéréo Pure Rumble Droite
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
